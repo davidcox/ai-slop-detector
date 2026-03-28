@@ -317,6 +317,7 @@
           span.className = `ai-lint-highlight ai-lint-${hit.severity}`;
           span.setAttribute("data-ai-lint-rule", hit.ruleName);
           span.setAttribute("data-ai-lint-desc", hit.description);
+          span.setAttribute("data-ai-lint-rule-id", hit.ruleId);
           span.textContent = match;
 
           const parent = textNode.parentNode;
@@ -383,6 +384,16 @@
       const low = lastResults.filter((r) => r.severity === "low").length;
 
       sendResponse({ total, high, medium, low, rules: Object.values(summary) });
+    } else if (msg.action === "scrollTo") {
+      const highlights = document.querySelectorAll(`.ai-lint-highlight[data-ai-lint-rule-id="${msg.ruleId}"]`);
+      if (highlights.length === 0) { sendResponse({ ok: false }); return; }
+      const idx = (msg.index || 0) % highlights.length;
+      const el = highlights[idx];
+      // Remove previous focus ring
+      document.querySelectorAll(".ai-lint-focus").forEach((e) => e.classList.remove("ai-lint-focus"));
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("ai-lint-focus");
+      sendResponse({ ok: true, total: highlights.length, current: idx });
     } else if (msg.action === "clear") {
       document.querySelectorAll(".ai-lint-highlight").forEach((el) => el.replaceWith(...el.childNodes));
       lastResults = [];

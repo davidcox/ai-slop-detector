@@ -158,8 +158,17 @@
     border-radius: 8px;
     border-left: 3px solid transparent;
     transition: background 0.1s ease;
+    cursor: pointer;
+    user-select: none;
   }
-  .rule-item:hover { background: rgba(255,255,255,0.06); }
+  .rule-item:hover { background: rgba(255,255,255,0.1); }
+  .rule-item:active { background: rgba(255,255,255,0.14); }
+
+  .rule-pos {
+    font-size: 10px;
+    color: #aaa;
+    margin-left: 4px;
+  }
   .rule-item.high { border-left-color: #ef4444; }
   .rule-item.medium { border-left-color: #f59e0b; }
   .rule-item.low { border-left-color: #3b82f6; }

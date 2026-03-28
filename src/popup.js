@@ -1,3 +1,6 @@
+// Track which match index we're on per rule (for click-to-cycle)
+const scrollIndex = {};
+
 document.getElementById("btn-scan").addEventListener("click", async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab) return;
@@ -21,7 +24,24 @@ document.getElementById("btn-clear").addEventListener("click", async () => {
   document.getElementById("score-panel").classList.remove("visible");
   document.getElementById("rules-list").innerHTML =
     '<div class="empty-state"><div class="icon">🧹</div>Highlights cleared.</div>';
+  // Reset scroll indices
+  Object.keys(scrollIndex).forEach((k) => delete scrollIndex[k]);
 });
+
+function scrollToRule(ruleId) {
+  if (!(ruleId in scrollIndex)) scrollIndex[ruleId] = 0;
+  else scrollIndex[ruleId]++;
+
+  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    if (!tab) return;
+    chrome.tabs.sendMessage(tab.id, { action: "scrollTo", ruleId, index: scrollIndex[ruleId] }, (resp) => {
+      if (chrome.runtime.lastError || !resp) return;
+      // Update the counter badge to show position
+      const badge = document.querySelector(`.rule-item[data-rule-id="${ruleId}"] .rule-pos`);
+      if (badge) badge.textContent = `${(resp.current + 1)}/${resp.total}`;
+    });
+  });
+}
 
 function renderResults({ total, high, medium, low, rules }) {
   // Score panel
@@ -63,20 +83,30 @@ function renderResults({ total, high, medium, low, rules }) {
     return b.count - a.count;
   });
 
+  // Reset scroll indices
+  Object.keys(scrollIndex).forEach((k) => delete scrollIndex[k]);
+
   list.innerHTML = rules
     .map((r) => {
       const examples = r.examples.map((e) => `<code>${escHtml(e)}</code>`).join(" ");
       return `
-      <div class="rule-item ${r.severity}">
+      <div class="rule-item ${r.severity}" data-rule-id="${escHtml(r.id)}">
         <div class="rule-top">
           <span class="rule-name">${escHtml(r.name)}</span>
-          <span class="rule-count">×${r.count}</span>
+          <span class="rule-count">×${r.count} <span class="rule-pos"></span></span>
         </div>
         <div class="rule-desc">${escHtml(r.description)}</div>
         ${examples ? `<div class="rule-examples">${examples}</div>` : ""}
       </div>`;
     })
     .join("");
+
+  // Attach click handlers to each rule item
+  list.querySelectorAll(".rule-item[data-rule-id]").forEach((item) => {
+    item.addEventListener("click", () => {
+      scrollToRule(item.getAttribute("data-rule-id"));
+    });
+  });
 }
 
 function escHtml(str) {
