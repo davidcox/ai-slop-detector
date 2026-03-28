@@ -1,5 +1,9 @@
 # 🔬 AI Slop Detector
 
+<p align="center">
+  <img src="ai-slop.jpg" alt="AI Slop Detector logo" width="256">
+</p>
+
 A browser extension that highlights common AI writing patterns — spaced em dashes, "delve," hedging phrases, and other tells — directly on any web page you're reading.
 
 > **Full disclosure:** This extension was written entirely by an AI. Yes, we know. The irony is not lost on us. If you find tells in *this* README, consider it a integration test.
