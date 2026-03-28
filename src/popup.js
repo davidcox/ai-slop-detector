@@ -1,6 +1,16 @@
 // Track which match index we're on per rule (for click-to-cycle)
 const scrollIndex = {};
 
+// Restore previous scan results when popup opens
+(async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab) return;
+  chrome.tabs.sendMessage(tab.id, { action: "getResults" }, (response) => {
+    if (chrome.runtime.lastError || !response) return;
+    renderResults(response);
+  });
+})();
+
 document.getElementById("btn-scan").addEventListener("click", async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab) return;

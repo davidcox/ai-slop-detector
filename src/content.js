@@ -362,28 +362,36 @@
   // ── Communication with popup ──────────────────────────────────────
 
   let lastResults = [];
+  let lastSummary = null;
+
+  function buildSummary(results) {
+    const summary = {};
+    for (const r of results) {
+      if (!summary[r.ruleId]) {
+        summary[r.ruleId] = { id: r.ruleId, name: r.ruleName, description: r.description, severity: r.severity, count: 0, examples: [] };
+      }
+      summary[r.ruleId].count++;
+      if (summary[r.ruleId].examples.length < 3) {
+        summary[r.ruleId].examples.push(r.matchText);
+      }
+    }
+    return {
+      total: results.length,
+      high: results.filter((r) => r.severity === "high").length,
+      medium: results.filter((r) => r.severity === "medium").length,
+      low: results.filter((r) => r.severity === "low").length,
+      rules: Object.values(summary),
+    };
+  }
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "scan") {
       lastResults = scanPage();
       highlightMatches(lastResults);
-      // Summarize for popup
-      const summary = {};
-      for (const r of lastResults) {
-        if (!summary[r.ruleId]) {
-          summary[r.ruleId] = { id: r.ruleId, name: r.ruleName, description: r.description, severity: r.severity, count: 0, examples: [] };
-        }
-        summary[r.ruleId].count++;
-        if (summary[r.ruleId].examples.length < 3) {
-          summary[r.ruleId].examples.push(r.matchText);
-        }
-      }
-      const total = lastResults.length;
-      const high = lastResults.filter((r) => r.severity === "high").length;
-      const medium = lastResults.filter((r) => r.severity === "medium").length;
-      const low = lastResults.filter((r) => r.severity === "low").length;
-
-      sendResponse({ total, high, medium, low, rules: Object.values(summary) });
+      lastSummary = buildSummary(lastResults);
+      sendResponse(lastSummary);
+    } else if (msg.action === "getResults") {
+      sendResponse(lastSummary);
     } else if (msg.action === "scrollTo") {
       const ruleId = CSS.escape(msg.ruleId);
       const highlights = document.querySelectorAll(`.ai-lint-highlight[data-ai-lint-rule-id="${ruleId}"]`);
