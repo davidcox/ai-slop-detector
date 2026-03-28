@@ -251,13 +251,25 @@
   function scanPage() {
     // Gather visible text from <p>, <li>, <td>, <h1>-<h6>, <span>, <blockquote>, <article>
     const SELECTORS = "p, li, td, th, h1, h2, h3, h4, h5, h6, span, blockquote, article, div.post, div.entry-content, div.article-body, section";
-    const elements = document.querySelectorAll(SELECTORS);
+    const allEls = Array.from(document.querySelectorAll(SELECTORS));
+
+    // Keep only innermost matched elements — skip any element that is an
+    // ancestor of another matched element, to avoid scanning the same text
+    // at multiple nesting levels (e.g. span inside p inside section).
+    const hasMatchedDescendant = new Set();
+    for (const el of allEls) {
+      let parent = el.parentElement;
+      while (parent) {
+        hasMatchedDescendant.add(parent);
+        parent = parent.parentElement;
+      }
+    }
+    const elements = allEls.filter((el) => !hasMatchedDescendant.has(el));
+
     const results = [];
-    const seen = new Set(); // avoid double-counting nested elements
+    const seen = new Set();
 
     for (const el of elements) {
-      // skip if already scanned as part of a parent
-      if (el.closest("[data-ai-lint-scanned]")) continue;
       const text = el.innerText || "";
       if (text.length < 20) continue;
       if (seen.has(text)) continue;
