@@ -1,0 +1,27 @@
+{
+  "name": "ai-slop-detector",
+  "version": "1.0.0",
+  "description": "Browser extension that lints web pages for common AI writing patterns",
+  "private": true,
+  "scripts": {
+    "build": "bash scripts/build.sh build",
+    "package": "bash scripts/build.sh package",
+    "clean": "bash scripts/build.sh clean",
+    "watch": "bash scripts/build.sh watch",
+    "lint": "bash scripts/build.sh lint"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "browser-extension",
+    "chrome-extension",
+    "ai-detection",
+    "writing",
+    "linter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}

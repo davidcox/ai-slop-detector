@@ -11,11 +11,11 @@
   const RULES = [
     // ── Typographic tells ──────────────────────────────────────────
     {
-      id: "unspaced-emdash",
-      name: "Unspaced em dash",
-      description: "Word—word with no spaces around the em dash. Rare in human writing, extremely common in LLM output.",
+      id: "spaced-emdash",
+      name: "Spaced em dash",
+      description: "Word — word with spaces around the em dash. Most style guides (AP, Chicago, NYT) use unspaced em dashes; spaced ones are a strong LLM tell.",
       severity: "high",
-      pattern: /\w\u2014\w/g,
+      pattern: /\w\s\u2014\s\w/g,
     },
     {
       id: "double-emdash",
@@ -160,35 +160,35 @@
       name: '"It\'s worth noting"',
       description: "A classic hedge that pads AI paragraphs.",
       severity: "high",
-      pattern: /\bit(?:'|')s\s+worth\s+noting\b/gi,
+      pattern: /\bit(?:'|'\u2019)s\s+worth\s+noting\b/gi,
     },
     {
       id: "its-important",
       name: '"It\'s important to note"',
       description: "Another hedge; humans rarely write this unprompted.",
       severity: "high",
-      pattern: /\bit(?:'|')s\s+important\s+to\s+(?:note|remember|recognize|understand)\b/gi,
+      pattern: /\bit(?:'|'\u2019)s\s+important\s+to\s+(?:note|remember|recognize|understand)\b/gi,
     },
     {
       id: "in-todays",
       name: '"In today\'s [X]"',
       description: '"In today\'s fast-paced world…" — a quintessential AI opener.',
       severity: "high",
-      pattern: /\bin\s+today(?:'|')s\s+\w+/gi,
+      pattern: /\bin\s+today(?:'|'\u2019)s\s+\w+/gi,
     },
     {
       id: "whether-youre",
       name: '"Whether you\'re [X] or [Y]"',
       description: "A formulaic inclusive-sounding construction AI overuses.",
       severity: "medium",
-      pattern: /\bwhether\s+you(?:'|')re\b/gi,
+      pattern: /\bwhether\s+you(?:'|'\u2019)re\b/gi,
     },
     {
       id: "lets-dive",
       name: '"Let\'s dive in"',
       description: "The canonical AI transition phrase.",
       severity: "high",
-      pattern: /\blet(?:'|')s\s+dive\s+in\b/gi,
+      pattern: /\blet(?:'|'\u2019)s\s+dive\s+in\b/gi,
     },
     {
       id: "in-conclusion",
