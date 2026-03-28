@@ -15,7 +15,7 @@
       name: "Spaced em dash",
       description: "Word — word with spaces around the em dash. Most style guides (AP, Chicago, NYT) use unspaced em dashes; spaced ones are a strong LLM tell.",
       severity: "high",
-      pattern: /\w\s\u2014\s\w/g,
+      pattern: /\w+[\s\u00a0]+[\u2013\u2014][\s\u00a0]+\w+/g,
     },
     {
       id: "double-emdash",
@@ -30,7 +30,7 @@
         const sentences = text.split(/(?<=[.!?])\s+/);
         let offset = 0;
         for (const s of sentences) {
-          const dashes = [...s.matchAll(/\u2014/g)];
+          const dashes = [...s.matchAll(/[\u2013\u2014]/g)];
           if (dashes.length >= 2) {
             hits.push({ start: offset, end: offset + s.length });
           }
