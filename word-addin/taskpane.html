@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Slop Detector</title>
+<link rel="stylesheet" href="taskpane.css">
+<script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="icon">🔬</span> AI Slop Detector</h1>
+  <p>lint document for ai writing patterns</p>
+</div>
+
+<div class="actions">
+  <button id="btn-scan">Scan Document</button>
+  <button id="btn-clear">Clear</button>
+</div>
+
+<div id="status-bar" class="status-bar"></div>
+
+<div class="score-panel" id="score-panel">
+  <div class="score-row">
+    <div>
+      <div class="score-label">Hits found</div>
+      <div class="score-badge" id="total-count">0</div>
+    </div>
+    <div id="verdict" class="verdict"></div>
+  </div>
+  <div class="severity-bars">
+    <div class="sev-item"><div class="sev-dot high"></div><span id="high-count">0</span> high</div>
+    <div class="sev-item"><div class="sev-dot medium"></div><span id="med-count">0</span> med</div>
+    <div class="sev-item"><div class="sev-dot low"></div><span id="low-count">0</span> low</div>
+  </div>
+</div>
+
+<div class="rules-list" id="rules-list">
+  <div class="empty-state">
+    <div class="icon">👆</div>
+    Hit <strong>Scan Document</strong> to lint for AI writing tells.
+  </div>
+</div>
+
+<!-- Inline shared engine and rules so the add-in is self-contained -->
+<script src="../rules/engine.js"></script>
+<script>
+  var SLOP_RULES = null;
+  // Load rules via fetch (works when served locally)
+  fetch("../rules/rules.json")
+    .then(function(r) { return r.json(); })
+    .then(function(data) { SLOP_RULES = data; })
+    .catch(function() {
+      // Fallback: try relative to taskpane
+      fetch("rules.json")
+        .then(function(r) { return r.json(); })
+        .then(function(data) { SLOP_RULES = data; });
+    });
+</script>
+<script src="taskpane.js"></script>
+</body>
+</html>
