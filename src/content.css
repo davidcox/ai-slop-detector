@@ -28,13 +28,15 @@
 
 /* Focus flash when scrolled to from popup */
 .ai-lint-focus {
-  outline: 3px solid #fff;
+  outline: 3px solid #facc15 !important;
   outline-offset: 2px;
-  animation: ai-lint-flash 1.5s ease-out;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.5);
+  animation: ai-lint-flash 2s ease-out forwards;
 }
 
 @keyframes ai-lint-flash {
-  0%   { outline-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.6); }
+  0%   { outline-color: #facc15; box-shadow: 0 0 16px rgba(250, 204, 21, 0.5); }
+  70%  { outline-color: #facc15; box-shadow: 0 0 8px rgba(250, 204, 21, 0.3); }
   100% { outline-color: transparent; box-shadow: none; }
 }
 
