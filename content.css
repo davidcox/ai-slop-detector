@@ -1,0 +1,73 @@
+/* AI Slop Detector — Highlight styles */
+
+.ai-lint-highlight {
+  border-radius: 2px;
+  cursor: help;
+  position: relative;
+  transition: outline 0.15s ease;
+}
+
+.ai-lint-highlight:hover {
+  outline: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+.ai-lint-high {
+  background: rgba(239, 68, 68, 0.25);
+  border-bottom: 2px solid #ef4444;
+}
+
+.ai-lint-medium {
+  background: rgba(245, 158, 11, 0.2);
+  border-bottom: 2px solid #f59e0b;
+}
+
+.ai-lint-low {
+  background: rgba(59, 130, 246, 0.15);
+  border-bottom: 2px solid #3b82f6;
+}
+
+/* Tooltip */
+.ai-lint-tooltip {
+  position: absolute;
+  z-index: 2147483647;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  max-width: 340px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-lint-tooltip strong {
+  color: #fff;
+  font-size: 13px;
+}
+
+.ai-lint-sev {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.ai-lint-sev-high {
+  background: #ef4444;
+  color: #fff;
+}
+
+.ai-lint-sev-med {
+  background: #f59e0b;
+  color: #1a1a2e;
+}
+
+.ai-lint-sev-low {
+  background: #3b82f6;
+  color: #fff;
+}
