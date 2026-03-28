@@ -28,18 +28,17 @@ document.getElementById("btn-clear").addEventListener("click", async () => {
   Object.keys(scrollIndex).forEach((k) => delete scrollIndex[k]);
 });
 
-function scrollToRule(ruleId) {
+async function scrollToRule(ruleId) {
   if (!(ruleId in scrollIndex)) scrollIndex[ruleId] = 0;
   else scrollIndex[ruleId]++;
 
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-    if (!tab) return;
-    chrome.tabs.sendMessage(tab.id, { action: "scrollTo", ruleId, index: scrollIndex[ruleId] }, (resp) => {
-      if (chrome.runtime.lastError || !resp) return;
-      // Update the counter badge to show position
-      const badge = document.querySelector(`.rule-item[data-rule-id="${ruleId}"] .rule-pos`);
-      if (badge) badge.textContent = `${(resp.current + 1)}/${resp.total}`;
-    });
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab) return;
+
+  chrome.tabs.sendMessage(tab.id, { action: "scrollTo", ruleId, index: scrollIndex[ruleId] }, (resp) => {
+    if (chrome.runtime.lastError || !resp) return;
+    const badge = document.querySelector(`.rule-item[data-rule-id="${ruleId}"] .rule-pos`);
+    if (badge) badge.textContent = `${(resp.current + 1)}/${resp.total}`;
   });
 }
 

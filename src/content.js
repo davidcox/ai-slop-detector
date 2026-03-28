@@ -385,14 +385,19 @@
 
       sendResponse({ total, high, medium, low, rules: Object.values(summary) });
     } else if (msg.action === "scrollTo") {
-      const highlights = document.querySelectorAll(`.ai-lint-highlight[data-ai-lint-rule-id="${msg.ruleId}"]`);
+      const ruleId = CSS.escape(msg.ruleId);
+      const highlights = document.querySelectorAll(`.ai-lint-highlight[data-ai-lint-rule-id="${ruleId}"]`);
       if (highlights.length === 0) { sendResponse({ ok: false }); return; }
-      const idx = (msg.index || 0) % highlights.length;
+      const idx = (typeof msg.index === "number" ? msg.index : 0) % highlights.length;
       const el = highlights[idx];
-      // Remove previous focus ring
-      document.querySelectorAll(".ai-lint-focus").forEach((e) => e.classList.remove("ai-lint-focus"));
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Remove previous focus ring from all highlights
+      document.querySelectorAll(".ai-lint-focus").forEach((e) => {
+        e.classList.remove("ai-lint-focus");
+      });
+      // Force reflow so the browser restarts the animation
+      void el.offsetWidth;
       el.classList.add("ai-lint-focus");
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
       sendResponse({ ok: true, total: highlights.length, current: idx });
     } else if (msg.action === "clear") {
       document.querySelectorAll(".ai-lint-highlight").forEach((el) => el.replaceWith(...el.childNodes));
