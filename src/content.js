@@ -15,7 +15,7 @@
       name: "Spaced em dash",
       description: "Word — word with spaces around the em dash. Most style guides (AP, Chicago, NYT) use unspaced em dashes; spaced ones are a strong LLM tell.",
       severity: "high",
-      pattern: /\w\s\u2014\s\w/g,
+      pattern: /\w+[\s\u00a0]+[\u2013\u2014][\s\u00a0]+\w+/g,
     },
     {
       id: "double-emdash",
@@ -30,7 +30,7 @@
         const sentences = text.split(/(?<=[.!?])\s+/);
         let offset = 0;
         for (const s of sentences) {
-          const dashes = [...s.matchAll(/\u2014/g)];
+          const dashes = [...s.matchAll(/[\u2013\u2014]/g)];
           if (dashes.length >= 2) {
             hits.push({ start: offset, end: offset + s.length });
           }
@@ -232,6 +232,57 @@
       severity: "high",
       pattern: /^(?:Great\s+question|Absolutely|Certainly|Of\s+course)[!.]/gim,
     },
+
+    // ── Patterns from "Field Guide to AI Slop" ────────────────────
+    {
+      id: "emoji-bullets",
+      name: "Emoji bullet points",
+      description: "Emoji-prefixed list items in professional prose — a strong AI formatting tell, especially GPT-4o.",
+      severity: "high",
+      pattern: /^[\u{1F300}-\u{1FAD6}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u2705\u2611\u2714\u{1F4CA}\u{1F4C8}\u{1F4A1}\u{1F680}\u{1F525}\u{1F3AF}\u{1F4DD}\u{1F44D}\u{1F64C}\u270F]\s+\S/gmu,
+    },
+    {
+      id: "heres-the-thing",
+      name: '"Here\'s the thing"',
+      description: "Unearned profundity — a dramatic narrative-shifting transition AI uses to sound deep.",
+      severity: "medium",
+      pattern: /\b(?:but\s+)?here(?:'|')s\s+the\s+thing\b/gi,
+    },
+    {
+      id: "everything-changed",
+      name: "Dramatic pivot",
+      description: '"Something shifted." "Everything changed." — short dramatic sentences AI uses for unearned narrative weight.',
+      severity: "medium",
+      pattern: /(?:^|\.\s+)(?:Something\s+shifted|Everything\s+changed|That\s+changed\s+everything|Then\s+everything\s+clicked)[.!]/gim,
+    },
+    {
+      id: "as-continues-to",
+      name: '"As [X] continues to [Y]"',
+      description: "Vapid opener that says nothing. A favorite AI way to start paragraphs.",
+      severity: "high",
+      pattern: /\bas\s+\w+\s+continues?\s+to\s+\w+/gi,
+    },
+    {
+      id: "at-the-end-of-the-day",
+      name: '"At the end of the day"',
+      description: "Overused vapid transition — AI reaches for this when summarizing.",
+      severity: "medium",
+      pattern: /\bat\s+the\s+end\s+of\s+the\s+day\b/gi,
+    },
+    {
+      id: "its-not-its",
+      name: '"It\'s not X, it\'s Y"',
+      description: "Formulaic parallelism AI uses reflexively to sound insightful without saying much.",
+      severity: "medium",
+      pattern: /\bit(?:'|')s\s+not\s+(?:just\s+)?(?:about\s+)?.{1,30}?[,;]\s*it(?:'|')s\s+/gi,
+    },
+    {
+      id: "the-reality-is",
+      name: '"The reality is"',
+      description: "Unearned authority transition — AI uses this to pivot to its main point.",
+      severity: "medium",
+      pattern: /\b(?:the\s+)?reality\s+is\b/gi,
+    },
   ];
 
   // ── Scanning engine ───────────────────────────────────────────────
@@ -251,13 +302,25 @@
   function scanPage() {
     // Gather visible text from <p>, <li>, <td>, <h1>-<h6>, <span>, <blockquote>, <article>
     const SELECTORS = "p, li, td, th, h1, h2, h3, h4, h5, h6, span, blockquote, article, div.post, div.entry-content, div.article-body, section";
-    const elements = document.querySelectorAll(SELECTORS);
+    const allEls = Array.from(document.querySelectorAll(SELECTORS));
+
+    // Keep only innermost matched elements — skip any element that is an
+    // ancestor of another matched element, to avoid scanning the same text
+    // at multiple nesting levels (e.g. span inside p inside section).
+    const hasMatchedDescendant = new Set();
+    for (const el of allEls) {
+      let parent = el.parentElement;
+      while (parent) {
+        hasMatchedDescendant.add(parent);
+        parent = parent.parentElement;
+      }
+    }
+    const elements = allEls.filter((el) => !hasMatchedDescendant.has(el));
+
     const results = [];
-    const seen = new Set(); // avoid double-counting nested elements
+    const seen = new Set();
 
     for (const el of elements) {
-      // skip if already scanned as part of a parent
-      if (el.closest("[data-ai-lint-scanned]")) continue;
       const text = el.innerText || "";
       if (text.length < 20) continue;
       if (seen.has(text)) continue;

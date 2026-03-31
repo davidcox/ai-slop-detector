@@ -1,0 +1,291 @@
+[
+  {
+    "id": "spaced-emdash",
+    "name": "Spaced em dash",
+    "description": "Word — word with spaces around the em dash. Most style guides (AP, Chicago, NYT) use unspaced em dashes; spaced ones are a strong LLM tell.",
+    "severity": "high",
+    "pattern": "\\w+[\\s\\u00a0]+[\\u2013\\u2014][\\s\\u00a0]+\\w+",
+    "flags": "g"
+  },
+  {
+    "id": "double-emdash",
+    "name": "Double em dash",
+    "description": "Two em dashes in one sentence — a cadence LLMs love.",
+    "severity": "medium",
+    "pattern": null,
+    "flags": null,
+    "customHandler": "doubleEmdash"
+  },
+  {
+    "id": "delve",
+    "name": "\"Delve\"",
+    "description": "Almost nobody writes \"delve\" unprompted. Strong AI signal.",
+    "severity": "high",
+    "pattern": "\\bdelve[sd]?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "tapestry",
+    "name": "\"Tapestry\" (metaphorical)",
+    "description": "LLMs reach for \"tapestry\" as a metaphor far more than humans do.",
+    "severity": "medium",
+    "pattern": "\\btapestry\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "landscape",
+    "name": "\"Landscape\" (metaphorical)",
+    "description": "\"The AI landscape,\" \"the competitive landscape\" — a go-to filler noun.",
+    "severity": "low",
+    "pattern": "\\b(?:the\\s+)?(?:\\w+\\s+)?landscape\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "leverage-verb",
+    "name": "\"Leverage\" as verb",
+    "description": "Leverage used as a verb is a corporate-AI tell.",
+    "severity": "medium",
+    "pattern": "\\bleverag(?:e|es|ed|ing)\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "robust",
+    "name": "\"Robust\"",
+    "description": "Overrepresented in AI-generated text relative to human writing.",
+    "severity": "low",
+    "pattern": "\\brobust\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "multifaceted",
+    "name": "\"Multifaceted\"",
+    "description": "A favorite padding adjective of language models.",
+    "severity": "medium",
+    "pattern": "\\bmultifaceted\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "comprehensive",
+    "name": "\"Comprehensive\"",
+    "description": "LLMs describe nearly everything as comprehensive.",
+    "severity": "low",
+    "pattern": "\\bcomprehensive\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "crucial-pivotal",
+    "name": "\"Crucial\" / \"Pivotal\"",
+    "description": "Disproportionately common in AI text as intensifiers.",
+    "severity": "low",
+    "pattern": "\\b(?:crucial|pivotal)\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "realm",
+    "name": "\"Realm\"",
+    "description": "\"In the realm of…\" — classic LLM filler.",
+    "severity": "medium",
+    "pattern": "\\brealm\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "cutting-edge",
+    "name": "\"Cutting-edge\"",
+    "description": "Hyphenated cliché that AI loves.",
+    "severity": "low",
+    "pattern": "\\bcutting[- ]edge\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "foster",
+    "name": "\"Foster\"",
+    "description": "\"Foster innovation,\" \"foster collaboration\" — a standout AI verb.",
+    "severity": "medium",
+    "pattern": "\\bfoster(?:s|ed|ing)?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "underscores",
+    "name": "\"Underscores\" (as emphasis verb)",
+    "description": "\"This underscores the importance…\" — disproportionately AI.",
+    "severity": "medium",
+    "pattern": "\\bunderscores?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "navigate",
+    "name": "\"Navigate\" (metaphorical)",
+    "description": "\"Navigate challenges,\" \"navigate complexity\" — AI filler verb.",
+    "severity": "low",
+    "pattern": "\\bnavigate[sd]?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "embark",
+    "name": "\"Embark\"",
+    "description": "\"Embark on a journey…\" — almost a parody of AI writing.",
+    "severity": "high",
+    "pattern": "\\bembark(?:s|ed|ing)?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "streamline",
+    "name": "\"Streamline\"",
+    "description": "Corporate AI favorite.",
+    "severity": "low",
+    "pattern": "\\bstreamline[sd]?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "game-changer",
+    "name": "\"Game-changer\"",
+    "description": "AI-favored hype word.",
+    "severity": "low",
+    "pattern": "\\bgame[- ]changer\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "its-worth-noting",
+    "name": "\"It's worth noting\"",
+    "description": "A classic hedge that pads AI paragraphs.",
+    "severity": "high",
+    "pattern": "\\bit(?:'|'|\\u2019)s\\s+worth\\s+noting\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "its-important",
+    "name": "\"It's important to note\"",
+    "description": "Another hedge; humans rarely write this unprompted.",
+    "severity": "high",
+    "pattern": "\\bit(?:'|'|\\u2019)s\\s+important\\s+to\\s+(?:note|remember|recognize|understand)\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "in-todays",
+    "name": "\"In today's [X]\"",
+    "description": "\"In today's fast-paced world…\" — a quintessential AI opener.",
+    "severity": "high",
+    "pattern": "\\bin\\s+today(?:'|'|\\u2019)s\\s+\\w+",
+    "flags": "gi"
+  },
+  {
+    "id": "whether-youre",
+    "name": "\"Whether you're [X] or [Y]\"",
+    "description": "A formulaic inclusive-sounding construction AI overuses.",
+    "severity": "medium",
+    "pattern": "\\bwhether\\s+you(?:'|'|\\u2019)re\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "lets-dive",
+    "name": "\"Let's dive in\"",
+    "description": "The canonical AI transition phrase.",
+    "severity": "high",
+    "pattern": "\\blet(?:'|'|\\u2019)s\\s+dive\\s+in\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "in-conclusion",
+    "name": "\"In conclusion\"",
+    "description": "Rare in natural prose; common in AI-generated articles.",
+    "severity": "medium",
+    "pattern": "\\bin\\s+conclusion\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "furthermore-moreover",
+    "name": "\"Furthermore\" / \"Moreover\"",
+    "description": "Formal conjunctive adverbs overused by AI to chain paragraphs.",
+    "severity": "low",
+    "pattern": "\\b(?:furthermore|moreover)\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "in-the-realm",
+    "name": "\"In the realm of\"",
+    "description": "Formulaic AI opener for a topic sentence.",
+    "severity": "high",
+    "pattern": "\\bin\\s+the\\s+realm\\s+of\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "at-its-core",
+    "name": "\"At its core\"",
+    "description": "AI loves this transition to sound insightful.",
+    "severity": "medium",
+    "pattern": "\\bat\\s+its\\s+core\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "not-just-but",
+    "name": "\"Not just [X], but [Y]\"",
+    "description": "A rhetorical construction AI leans on heavily.",
+    "severity": "low",
+    "pattern": "\\bnot\\s+just\\s+.{1,40}?\\s+but\\s+",
+    "flags": "gi"
+  },
+  {
+    "id": "exclamation-opener",
+    "name": "Exclamatory opener",
+    "description": "\"Great question!\", \"Absolutely!\" — chatbot-style enthusiasm.",
+    "severity": "high",
+    "pattern": "^(?:Great\\s+question|Absolutely|Certainly|Of\\s+course)[!.]",
+    "flags": "gim"
+  },
+  {
+    "id": "emoji-bullets",
+    "name": "Emoji bullet points",
+    "description": "Emoji-prefixed list items in professional prose — a strong AI formatting tell, especially GPT-4o.",
+    "severity": "high",
+    "pattern": "^[\\u{1F300}-\\u{1FAD6}\\u{2600}-\\u{27BF}\\u{FE00}-\\u{FE0F}\\u{1F900}-\\u{1F9FF}\\u2705\\u2611\\u2714\\u{1F4CA}\\u{1F4C8}\\u{1F4A1}\\u{1F680}\\u{1F525}\\u{1F3AF}\\u{1F4DD}\\u{1F44D}\\u{1F64C}\\u270F]\\s+\\S",
+    "flags": "gmu"
+  },
+  {
+    "id": "heres-the-thing",
+    "name": "\"Here's the thing\"",
+    "description": "Unearned profundity — a dramatic narrative-shifting transition AI uses to sound deep.",
+    "severity": "medium",
+    "pattern": "\\b(?:but\\s+)?here(?:'|')s\\s+the\\s+thing\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "everything-changed",
+    "name": "Dramatic pivot",
+    "description": "\"Something shifted.\" \"Everything changed.\" — short dramatic sentences AI uses for unearned narrative weight.",
+    "severity": "medium",
+    "pattern": "(?:^|\\.\\s+)(?:Something\\s+shifted|Everything\\s+changed|That\\s+changed\\s+everything|Then\\s+everything\\s+clicked)[.!]",
+    "flags": "gim"
+  },
+  {
+    "id": "as-continues-to",
+    "name": "\"As [X] continues to [Y]\"",
+    "description": "Vapid opener that says nothing. A favorite AI way to start paragraphs.",
+    "severity": "high",
+    "pattern": "\\bas\\s+\\w+\\s+continues?\\s+to\\s+\\w+",
+    "flags": "gi"
+  },
+  {
+    "id": "at-the-end-of-the-day",
+    "name": "\"At the end of the day\"",
+    "description": "Overused vapid transition — AI reaches for this when summarizing.",
+    "severity": "medium",
+    "pattern": "\\bat\\s+the\\s+end\\s+of\\s+the\\s+day\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "its-not-its",
+    "name": "\"It's not X, it's Y\"",
+    "description": "Formulaic parallelism AI uses reflexively to sound insightful without saying much.",
+    "severity": "medium",
+    "pattern": "\\bit(?:'|')s\\s+not\\s+(?:just\\s+)?(?:about\\s+)?.{1,30}?[,;]\\s*it(?:'|')s\\s+",
+    "flags": "gi"
+  },
+  {
+    "id": "the-reality-is",
+    "name": "\"The reality is\"",
+    "description": "Unearned authority transition — AI uses this to pivot to its main point.",
+    "severity": "medium",
+    "pattern": "\\b(?:the\\s+)?reality\\s+is\\b",
+    "flags": "gi"
+  }
+]

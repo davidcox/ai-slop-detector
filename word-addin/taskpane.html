@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Slop Detector</title>
+<link rel="stylesheet" href="taskpane.css">
+<script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+
+<!-- Inline shared rules (from rules/rules.json) -->
+<script>
+var SLOP_RULES = [
+  {
+    "id": "spaced-emdash",
+    "name": "Spaced em dash",
+    "description": "Word \u2014 word with spaces around the em dash. Most style guides (AP, Chicago, NYT) use unspaced em dashes; spaced ones are a strong LLM tell.",
+    "severity": "high",
+    "pattern": "\\w+[\\s\\u00a0]+[\\u2013\\u2014][\\s\\u00a0]+\\w+",
+    "flags": "g"
+  },
+  {
+    "id": "double-emdash",
+    "name": "Double em dash",
+    "description": "Two em dashes in one sentence \u2014 a cadence LLMs love.",
+    "severity": "medium",
+    "pattern": null,
+    "flags": null,
+    "customHandler": "doubleEmdash"
+  },
+  {
+    "id": "delve",
+    "name": "\"Delve\"",
+    "description": "Almost nobody writes \"delve\" unprompted. Strong AI signal.",
+    "severity": "high",
+    "pattern": "\\bdelve[sd]?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "tapestry",
+    "name": "\"Tapestry\" (metaphorical)",
+    "description": "LLMs reach for \"tapestry\" as a metaphor far more than humans do.",
+    "severity": "medium",
+    "pattern": "\\btapestry\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "landscape",
+    "name": "\"Landscape\" (metaphorical)",
+    "description": "\"The AI landscape,\" \"the competitive landscape\" \u2014 a go-to filler noun.",
+    "severity": "low",
+    "pattern": "\\b(?:the\\s+)?(?:\\w+\\s+)?landscape\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "leverage-verb",
+    "name": "\"Leverage\" as verb",
+    "description": "Leverage used as a verb is a corporate-AI tell.",
+    "severity": "medium",
+    "pattern": "\\bleverag(?:e|es|ed|ing)\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "robust",
+    "name": "\"Robust\"",
+    "description": "Overrepresented in AI-generated text relative to human writing.",
+    "severity": "low",
+    "pattern": "\\brobust\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "multifaceted",
+    "name": "\"Multifaceted\"",
+    "description": "A favorite padding adjective of language models.",
+    "severity": "medium",
+    "pattern": "\\bmultifaceted\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "comprehensive",
+    "name": "\"Comprehensive\"",
+    "description": "LLMs describe nearly everything as comprehensive.",
+    "severity": "low",
+    "pattern": "\\bcomprehensive\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "crucial-pivotal",
+    "name": "\"Crucial\" / \"Pivotal\"",
+    "description": "Disproportionately common in AI text as intensifiers.",
+    "severity": "low",
+    "pattern": "\\b(?:crucial|pivotal)\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "realm",
+    "name": "\"Realm\"",
+    "description": "\"In the realm of\u2026\" \u2014 classic LLM filler.",
+    "severity": "medium",
+    "pattern": "\\brealm\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "cutting-edge",
+    "name": "\"Cutting-edge\"",
+    "description": "Hyphenated clich\u00e9 that AI loves.",
+    "severity": "low",
+    "pattern": "\\bcutting[- ]edge\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "foster",
+    "name": "\"Foster\"",
+    "description": "\"Foster innovation,\" \"foster collaboration\" \u2014 a standout AI verb.",
+    "severity": "medium",
+    "pattern": "\\bfoster(?:s|ed|ing)?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "underscores",
+    "name": "\"Underscores\" (as emphasis verb)",
+    "description": "\"This underscores the importance\u2026\" \u2014 disproportionately AI.",
+    "severity": "medium",
+    "pattern": "\\bunderscores?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "navigate",
+    "name": "\"Navigate\" (metaphorical)",
+    "description": "\"Navigate challenges,\" \"navigate complexity\" \u2014 AI filler verb.",
+    "severity": "low",
+    "pattern": "\\bnavigate[sd]?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "embark",
+    "name": "\"Embark\"",
+    "description": "\"Embark on a journey\u2026\" \u2014 almost a parody of AI writing.",
+    "severity": "high",
+    "pattern": "\\bembark(?:s|ed|ing)?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "streamline",
+    "name": "\"Streamline\"",
+    "description": "Corporate AI favorite.",
+    "severity": "low",
+    "pattern": "\\bstreamline[sd]?\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "game-changer",
+    "name": "\"Game-changer\"",
+    "description": "AI-favored hype word.",
+    "severity": "low",
+    "pattern": "\\bgame[- ]changer\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "its-worth-noting",
+    "name": "\"It's worth noting\"",
+    "description": "A classic hedge that pads AI paragraphs.",
+    "severity": "high",
+    "pattern": "\\bit(?:'|\\u2018|\\u2019)s\\s+worth\\s+noting\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "its-important",
+    "name": "\"It's important to note\"",
+    "description": "Another hedge; humans rarely write this unprompted.",
+    "severity": "high",
+    "pattern": "\\bit(?:'|\\u2018|\\u2019)s\\s+important\\s+to\\s+(?:note|remember|recognize|understand)\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "in-todays",
+    "name": "\"In today's [X]\"",
+    "description": "\"In today's fast-paced world\u2026\" \u2014 a quintessential AI opener.",
+    "severity": "high",
+    "pattern": "\\bin\\s+today(?:'|\\u2018|\\u2019)s\\s+\\w+",
+    "flags": "gi"
+  },
+  {
+    "id": "whether-youre",
+    "name": "\"Whether you're [X] or [Y]\"",
+    "description": "A formulaic inclusive-sounding construction AI overuses.",
+    "severity": "medium",
+    "pattern": "\\bwhether\\s+you(?:'|\\u2018|\\u2019)re\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "lets-dive",
+    "name": "\"Let's dive in\"",
+    "description": "The canonical AI transition phrase.",
+    "severity": "high",
+    "pattern": "\\blet(?:'|\\u2018|\\u2019)s\\s+dive\\s+in\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "in-conclusion",
+    "name": "\"In conclusion\"",
+    "description": "Rare in natural prose; common in AI-generated articles.",
+    "severity": "medium",
+    "pattern": "\\bin\\s+conclusion\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "furthermore-moreover",
+    "name": "\"Furthermore\" / \"Moreover\"",
+    "description": "Formal conjunctive adverbs overused by AI to chain paragraphs.",
+    "severity": "low",
+    "pattern": "\\b(?:furthermore|moreover)\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "in-the-realm",
+    "name": "\"In the realm of\"",
+    "description": "Formulaic AI opener for a topic sentence.",
+    "severity": "high",
+    "pattern": "\\bin\\s+the\\s+realm\\s+of\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "at-its-core",
+    "name": "\"At its core\"",
+    "description": "AI loves this transition to sound insightful.",
+    "severity": "medium",
+    "pattern": "\\bat\\s+its\\s+core\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "not-just-but",
+    "name": "\"Not just [X], but [Y]\"",
+    "description": "A rhetorical construction AI leans on heavily.",
+    "severity": "low",
+    "pattern": "\\bnot\\s+just\\s+.{1,40}?\\s+but\\s+",
+    "flags": "gi"
+  },
+  {
+    "id": "exclamation-opener",
+    "name": "Exclamatory opener",
+    "description": "\"Great question!\", \"Absolutely!\" \u2014 chatbot-style enthusiasm.",
+    "severity": "high",
+    "pattern": "^(?:Great\\s+question|Absolutely|Certainly|Of\\s+course)[!.]",
+    "flags": "gim"
+  },
+  {
+    "id": "emoji-bullets",
+    "name": "Emoji bullet points",
+    "description": "Emoji-prefixed list items in professional prose \u2014 a strong AI formatting tell, especially GPT-4o.",
+    "severity": "high",
+    "pattern": "^[\\u{1F300}-\\u{1FAD6}\\u{2600}-\\u{27BF}\\u{FE00}-\\u{FE0F}\\u{1F900}-\\u{1F9FF}\\u2705\\u2611\\u2714\\u{1F4CA}\\u{1F4C8}\\u{1F4A1}\\u{1F680}\\u{1F525}\\u{1F3AF}\\u{1F4DD}\\u{1F44D}\\u{1F64C}\\u270F]\\s+\\S",
+    "flags": "gmu"
+  },
+  {
+    "id": "heres-the-thing",
+    "name": "\"Here's the thing\"",
+    "description": "Unearned profundity \u2014 a dramatic narrative-shifting transition AI uses to sound deep.",
+    "severity": "medium",
+    "pattern": "\\b(?:but\\s+)?here(?:'|\\u2019)s\\s+the\\s+thing\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "everything-changed",
+    "name": "Dramatic pivot",
+    "description": "\"Something shifted.\" \"Everything changed.\" \u2014 short dramatic sentences AI uses for unearned narrative weight.",
+    "severity": "medium",
+    "pattern": "(?:^|\\.\\s+)(?:Something\\s+shifted|Everything\\s+changed|That\\s+changed\\s+everything|Then\\s+everything\\s+clicked)[.!]",
+    "flags": "gim"
+  },
+  {
+    "id": "as-continues-to",
+    "name": "\"As [X] continues to [Y]\"",
+    "description": "Vapid opener that says nothing. A favorite AI way to start paragraphs.",
+    "severity": "high",
+    "pattern": "\\bas\\s+\\w+\\s+continues?\\s+to\\s+\\w+",
+    "flags": "gi"
+  },
+  {
+    "id": "at-the-end-of-the-day",
+    "name": "\"At the end of the day\"",
+    "description": "Overused vapid transition \u2014 AI reaches for this when summarizing.",
+    "severity": "medium",
+    "pattern": "\\bat\\s+the\\s+end\\s+of\\s+the\\s+day\\b",
+    "flags": "gi"
+  },
+  {
+    "id": "its-not-its",
+    "name": "\"It's not X, it's Y\"",
+    "description": "Formulaic parallelism AI uses reflexively to sound insightful without saying much.",
+    "severity": "medium",
+    "pattern": "\\bit(?:'|\\u2019)s\\s+not\\s+(?:just\\s+)?(?:about\\s+)?.{1,30}?[,;]\\s*it(?:'|\\u2019)s\\s+",
+    "flags": "gi"
+  },
+  {
+    "id": "the-reality-is",
+    "name": "\"The reality is\"",
+    "description": "Unearned authority transition \u2014 AI uses this to pivot to its main point.",
+    "severity": "medium",
+    "pattern": "\\b(?:the\\s+)?reality\\s+is\\b",
+    "flags": "gi"
+  }
+];
+</script>
+
+<!-- Inline shared engine (from rules/engine.js) -->
+<script>
+// AI Slop Detector — Shared matching engine
+// Isomorphic: works in browser, Node.js, VS Code, and Office Add-ins.
+// No DOM or platform-specific APIs — text in, data out.
+
+var CUSTOM_HANDLERS = {
+  doubleEmdash: function(text) {
+    var hits = [];
+    var sentences = text.split(/(?<=[.!?])\s+/);
+    var offset = 0;
+    for (var si = 0; si < sentences.length; si++) {
+      var s = sentences[si];
+      var dashes = [];
+      var dashRe = /[\u2013\u2014]/g;
+      var dm;
+      while ((dm = dashRe.exec(s)) !== null) {
+        dashes.push(dm);
+      }
+      if (dashes.length >= 2) {
+        hits.push({ start: offset, end: offset + s.length });
+      }
+      var gap = text.slice(offset + s.length).match(/^\s+/);
+      offset += s.length + (gap ? gap[0].length : 0);
+    }
+    return hits;
+  }
+};
+
+function loadRules(rulesJson) {
+  return rulesJson.map(function(r) {
+    var compiled = {};
+    for (var k in r) { if (r.hasOwnProperty(k)) compiled[k] = r[k]; }
+    if (r.pattern) {
+      compiled.regex = new RegExp(r.pattern, r.flags || "g");
+    }
+    if (r.customHandler && CUSTOM_HANDLERS[r.customHandler]) {
+      compiled.testFn = CUSTOM_HANDLERS[r.customHandler];
+    }
+    return compiled;
+  });
+}
+
+function getMatches(text, rule) {
+  if (rule.testFn) return rule.testFn(text);
+  if (!rule.regex) return [];
+  var hits = [];
+  rule.regex.lastIndex = 0;
+  var m;
+  while ((m = rule.regex.exec(text)) !== null) {
+    hits.push({ start: m.index, end: m.index + m[0].length });
+  }
+  return hits;
+}
+
+function scan(text, rules) {
+  var results = [];
+  for (var i = 0; i < rules.length; i++) {
+    var rule = rules[i];
+    var hits = getMatches(text, rule);
+    for (var j = 0; j < hits.length; j++) {
+      var hit = hits[j];
+      results.push({
+        ruleId: rule.id,
+        ruleName: rule.name,
+        description: rule.description,
+        severity: rule.severity,
+        start: hit.start,
+        end: hit.end,
+        matchText: text.slice(hit.start, hit.end)
+      });
+    }
+  }
+  return results;
+}
+
+function summarize(matches) {
+  var summary = {};
+  for (var i = 0; i < matches.length; i++) {
+    var r = matches[i];
+    if (!summary[r.ruleId]) {
+      summary[r.ruleId] = { id: r.ruleId, name: r.ruleName, description: r.description, severity: r.severity, count: 0, examples: [] };
+    }
+    summary[r.ruleId].count++;
+    if (summary[r.ruleId].examples.length < 3) {
+      summary[r.ruleId].examples.push(r.matchText);
+    }
+  }
+  var rulesList = [];
+  for (var key in summary) { if (summary.hasOwnProperty(key)) rulesList.push(summary[key]); }
+  return {
+    total: matches.length,
+    high: matches.filter(function(r) { return r.severity === "high"; }).length,
+    medium: matches.filter(function(r) { return r.severity === "medium"; }).length,
+    low: matches.filter(function(r) { return r.severity === "low"; }).length,
+    rules: rulesList
+  };
+}
+
+if (typeof globalThis !== "undefined") {
+  globalThis.SlopEngine = { loadRules: loadRules, scan: scan, summarize: summarize, getMatches: getMatches };
+}
+</script>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="icon">&#128300;</span> AI Slop Detector</h1>
+  <p>lint document for ai writing patterns</p>
+</div>
+
+<div class="actions">
+  <button id="btn-scan">Scan Document</button>
+  <button id="btn-clear">Clear</button>
+</div>
+
+<div id="status-bar" class="status-bar"></div>
+
+<div class="score-panel" id="score-panel">
+  <div class="score-row">
+    <div>
+      <div class="score-label">Hits found</div>
+      <div class="score-badge" id="total-count">0</div>
+    </div>
+    <div id="verdict" class="verdict"></div>
+  </div>
+  <div class="severity-bars">
+    <div class="sev-item"><div class="sev-dot high"></div><span id="high-count">0</span> high</div>
+    <div class="sev-item"><div class="sev-dot medium"></div><span id="med-count">0</span> med</div>
+    <div class="sev-item"><div class="sev-dot low"></div><span id="low-count">0</span> low</div>
+  </div>
+</div>
+
+<div class="rules-list" id="rules-list">
+  <div class="empty-state">
+    <div class="icon">&#128070;</div>
+    Hit <strong>Scan Document</strong> to lint for AI writing tells.
+  </div>
+</div>
+
+<script src="taskpane.js"></script>
+</body>
+</html>

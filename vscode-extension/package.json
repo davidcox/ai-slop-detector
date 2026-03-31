@@ -1,0 +1,48 @@
+{
+  "name": "ai-slop-detector",
+  "displayName": "AI Slop Detector",
+  "description": "Highlights AI writing patterns in your documents",
+  "version": "0.1.0",
+  "publisher": "ai-slop-detector",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:markdown",
+    "onLanguage:plaintext"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "aiSlopDetector.scan",
+        "title": "AI Slop Detector: Scan Document"
+      },
+      {
+        "command": "aiSlopDetector.clear",
+        "title": "AI Slop Detector: Clear Diagnostics"
+      }
+    ],
+    "configuration": {
+      "title": "AI Slop Detector",
+      "properties": {
+        "aiSlopDetector.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable the AI Slop Detector"
+        },
+        "aiSlopDetector.disabledRules": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "List of rule IDs to disable (e.g. [\"robust\", \"comprehensive\"])"
+        }
+      }
+    }
+  }
+}
