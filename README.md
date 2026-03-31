@@ -2,6 +2,8 @@
 
 <p align="center">
   <img src="ai-slop.jpg" alt="AI Slop Detector logo" width="256">
+  <br>
+  <em>"What do you mean humans only have five fingers?"</em>
 </p>
 
 A browser extension that highlights common AI writing patterns — spaced em dashes, "delve," hedging phrases, and other tells — directly on any web page you're reading.
@@ -96,6 +98,14 @@ npm run build
 ### From a release zip
 
 Download the latest `.zip` from [Releases](https://github.com/YOUR_USERNAME/ai-slop-detector/releases), unzip it, and load unpacked as above.
+
+## Also available for VS Code and Word
+
+This repo also includes a **VS Code extension** (`vscode-extension/`) and a **Microsoft Word add-in** (`word-addin/`) that share the same rule set (`rules/rules.json`) and matching engine (`rules/engine.js`).
+
+> **Fair warning:** The VS Code and Word plugins are *literally untested by a human.* They were written entirely by AI, verified only by automated checks, and have never been loaded into their respective applications. They might work perfectly. They might catch fire. Caveat emptor.
+
+See each directory's README for setup instructions.
 
 ## Development
 
